@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-declare_id!("6a2GdmttJdanBkoHt7f4Kon4hfadx4UTUgJeRkCaiL3U");
+declare_id!("J3HAbtgjPEMs3QhBARjk8FW6uY53qGkcSBexD9AXju6E");
 /// The Program ID can be found in /target/idl/[your_project_name].json
 // 
 /// This is where the magic happens. We define our program!
@@ -14,7 +14,7 @@ mod crunchy_vs_smooth {
     /// We no longer have to manually set both `crunchy` and `smooth` to 0 because we opted to use the `default` trait on our VotingState struct at the bottom of this file
     /// This a Rust trait that is used via #[derive(Default)]. More info on that here: https://doc.rust-lang.org/std/default/trait.Default.html
     pub fn initialize(ctx: Context<Initialize>, vote_account_bump: u8) -> ProgramResult {
-        ctx.accounts.vote_account.bump = vote_account_bump;
+        ctx.accounts.vote_account.bump = vote_account_bump; // it automatically gets the canonical bump 
         Ok(())
     }
 
@@ -48,8 +48,9 @@ pub struct Initialize<'info> {
     ///
     /// `seeds` and `bump` tell us that our `vote_account` is a PDA that can be derived from their respective values
     /// Account<'info, VotingState> tells us that it should be deserialized to the VotingState struct defined below at #[account]
-    #[account(init, seeds = [b"vote_account".as_ref()], bump = vote_account_bump, payer = user)]
+    #[account(init, space = 10000, payer = user, seeds = [b"vote_account".as_ref()], bump)]
     vote_account: Account<'info, VotingState>,
+    #[account(mut)]
     user: Signer<'info>,
     system_program: Program<'info, System>,
 }
