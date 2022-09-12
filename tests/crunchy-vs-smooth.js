@@ -25,7 +25,7 @@ describe("crunchy-vs-smooth", () => {
 
   it("Initializes with 0 votes for crunchy and smooth", async () => {
     await program.methods
-      .initialize(new anchor.BN(voteAccountBump))
+      .initialize()
       .accounts({
         user: provider.wallet.publicKey,
         voteAccount: voteAccount,

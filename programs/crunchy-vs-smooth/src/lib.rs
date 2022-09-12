@@ -13,8 +13,10 @@ mod crunchy_vs_smooth {
     /// When `initalize` is called, we'll store the `vote_account_bump` that was used to derive our PDA so that others can easily derive it on their clients
     /// We no longer have to manually set both `crunchy` and `smooth` to 0 because we opted to use the `default` trait on our VotingState struct at the bottom of this file
     /// This a Rust trait that is used via #[derive(Default)]. More info on that here: https://doc.rust-lang.org/std/default/trait.Default.html
-    pub fn initialize(ctx: Context<Initialize>, vote_account_bump: u8) -> ProgramResult {
-        ctx.accounts.vote_account.bump = vote_account_bump; // it automatically gets the canonical bump 
+    pub fn initialize(ctx: Context<Initialize>) -> ProgramResult {
+        msg!("Line 17 ~ pub fn initialize ~ initialize INVOKED to create PDA accounts");
+        ctx.accounts.vote_account.crunchy = 0; // initialized accounts with 0 values
+        ctx.accounts.vote_account.smooth = 0;
         Ok(())
     }
 
@@ -33,7 +35,7 @@ mod crunchy_vs_smooth {
 /// The #[derive(Accounts)] macro specifies all the accounts that are required for a given instruction
 /// Here, we define two structs: Initialize and Vote
 #[derive(Accounts)]
-#[instruction(vote_account_bump: u8)]
+// #[instruction(vote_account_bump: u8)] // we are no longer taking any values from instruction
 pub struct Initialize<'info> {
 
     /// The #[account(...)] macro enforces that our `vote_account` owned by the currently executing program.
@@ -48,16 +50,18 @@ pub struct Initialize<'info> {
     ///
     /// `seeds` and `bump` tell us that our `vote_account` is a PDA that can be derived from their respective values
     /// Account<'info, VotingState> tells us that it should be deserialized to the VotingState struct defined below at #[account]
-    #[account(init, space = 10000, payer = user, seeds = [b"vote_account".as_ref()], bump)]
+    #[account(init, space = 10000, payer = user, seeds = [b"vote_account".as_ref()], bump)] // canonical bump
     vote_account: Account<'info, VotingState>,
+
     #[account(mut)]
     user: Signer<'info>,
+
     system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
 pub struct Vote<'info> {
-    #[account(mut, seeds = [b"vote_account".as_ref()], bump = vote_account.bump)]
+    #[account(mut, seeds = [b"vote_account".as_ref()], bump)]   // vote_account PDA that stores VotingState
     vote_account: Account<'info, VotingState>,
 }
 
@@ -72,5 +76,4 @@ pub struct Vote<'info> {
 pub struct VotingState {
     crunchy: u64,
     smooth: u64,
-    bump: u8,
 }
